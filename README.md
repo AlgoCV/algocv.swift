@@ -24,6 +24,7 @@ swift test --filter "Backend throughput benchmarks"
 # Or one benchmark at a time
 swift test --filter "KernelBenchmarks/unitSum8BitThroughput"
 swift test --filter "KernelBenchmarks/zeroSum8BitThroughput"
+swift test --filter "KernelBenchmarks/separableGaussian8BitThroughput"
 swift test --filter "KernelBenchmarks/unitSum4BitThroughput"
 swift test --filter "KernelBenchmarks/zeroSum4BitThroughput"
 swift test --filter "KernelBenchmarks/erodeBinaryThroughput"
@@ -31,7 +32,7 @@ swift test --filter "KernelBenchmarks/dilateBinaryThroughput"
 ```
 
 From Xcode: select the `AlgoCV` scheme, open the Test navigator, and run the
-six tests under **Backend throughput benchmarks**. Timing tables appear in
+seven tests under **Backend throughput benchmarks**. Timing tables appear in
 the test report's console output.
 
 Image size, warmup count, iteration count, and the kernel sides under test are
@@ -131,6 +132,46 @@ dogTwoStep 11×11   1.550     0.038*    6.927      12.343         0.01x*        
 0.02–0.04 ms numbers are the cost of the throw, not real convolution time —
 ImPro's `Kernel` validator rejects the kernels because the Int8 rounding leaves
 the signed sum just shy of zero. Tracked as an upstream ImPro C-library bug.
+
+### Separable Gaussian on `Image8Bit` — two 1D passes (1×N then N×1)
+
+```
+kernel                 Metal     ImPro  vImage(1T)  OpenCV(1T)  ImPro/vImage   ImPro/OpenCV
+gaussian sep 3×3       1.691     4.445     2.749       3.020         1.62x          1.47x
+gaussian sep 5×5       2.653     4.895     2.880       2.818         1.70x          1.74x
+gaussian sep 7×7       1.845     5.097     3.364       3.152         1.52x          1.62x
+gaussian sep 9×9       2.897     5.870     3.726       3.397         1.58x          1.73x
+gaussian sep 11×11     2.620     6.115     4.222       3.732         1.45x          1.64x
+```
+
+Per call = horizontal 1×N pass + vertical N×1 pass on the intermediate. Compare
+against the 2D Gaussian rows in the unit-sum table to see the separable speed-up
+each backend gets from going `O(k²)` → `O(2k)` taps per pixel:
+
+| side    | Metal 2D → sep | ImPro 2D → sep | vImage 2D → sep | OpenCV 2D → sep |
+|---------|----------------|----------------|------------------|------------------|
+| 3×3     | 1.54 → 1.69    | 5.03 → 4.45 (1.1×) | 1.44 → 2.75    | 1.71 → 3.02      |
+| 5×5     | 0.63 → 2.65    | 4.11 → 4.90    | 1.94 → 2.88     | 2.84 → 2.82      |
+| 7×7     | 1.52 → 1.85    | 15.20 → 5.10 (**3.0×**) | 3.44 → 3.36 | 4.58 → 3.15 (1.5×) |
+| 9×9     | 1.34 → 2.90    | 24.84 → 5.87 (**4.2×**) | 4.27 → 3.73 (1.1×) | 12.34 → 3.40 (**3.6×**) |
+| 11×11   | 1.38 → 2.62    | 38.04 → 6.12 (**6.2×**) | 6.89 → 4.22 (1.6×) | 12.39 → 3.73 (**3.3×**) |
+
+Key observations:
+
+- **ImPro wins the separable transition the hardest.** Its 2D path scales
+  `O(k²)`; the 1D + 1D approach turns 11×11 from 38 ms into 6 ms. This is again
+  algorithmic: a separable decomposition is the textbook optimisation, ImPro
+  just doesn't auto-detect it from a 2D kernel matrix. Once a user supplies it,
+  ImPro lands within ~50% of vImage and OpenCV.
+- **OpenCV's DFT path becomes a liability above 7×7.** Its 2D `filter2D` jumps
+  to a flat ~12 ms at 9×9 because of the DFT heuristic; running two explicit
+  small 1D `filter2D` calls beats that path 3–4×.
+- **vImage's 2D path is already separable internally** (or close to it) — the
+  gain from explicit 1D + 1D is modest (1.1–1.6×).
+- **Metal is *slower* in the separable form** for these sizes because two
+  shader launches + an intermediate buffer cost more than the FLOP reduction at
+  1024×1024. Separable convolution is a CPU-side optimisation; on the GPU the
+  direct 2D shader is the right shape until the kernel gets very large.
 
 ### Unit-sum convolution on `Image4Bit` (Metal goes through 4→8→4 round-trip)
 

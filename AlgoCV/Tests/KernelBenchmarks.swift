@@ -121,6 +121,48 @@ struct KernelBenchmarks {
         report4(title: "Zero-sum convolution on Image8Bit", rows: rows)
     }
 
+    // MARK: - Separable Gaussian: 1D horizontal then 1D vertical
+
+    @Test("Separable Gaussian (1D + 1D) on Image8Bit (Metal, ImPro, vImage, OpenCV)")
+    func separableGaussian8BitThroughput() async throws {
+        guard let metal = AlgoCV.metalBackend else { return }
+        let impro = AlgoCV.improBackend
+        let vimage = AlgoCV.vImageBackend
+        let opencv = AlgoCV.openCVBackend
+        let image = Self.bench8Bit
+
+        var rows: [Bench4Row] = []
+        for side in KernelSamples.kernelSides {
+            let weights = SampleMath.gaussian1D(size: side)
+            let hKernel = try KernelUnitSum(validating: [weights])              // 1 × N
+            let vKernel = try KernelUnitSum(validating: weights.map { [$0] })   // N × 1
+
+            let mMs = await measureAverageMs {
+                if let mid = try? await metal.apply(hKernel, to: image) {
+                    _ = try? await metal.apply(vKernel, to: mid)
+                }
+            }
+            let iMs = await measureAverageMs {
+                if let mid = try? await impro.apply(hKernel, to: image) {
+                    _ = try? await impro.apply(vKernel, to: mid)
+                }
+            }
+            let vMs = await measureAverageMs {
+                if let mid = try? await vimage.apply(hKernel, to: image) {
+                    _ = try? await vimage.apply(vKernel, to: mid)
+                }
+            }
+            let cMs = await measureAverageMs {
+                if let mid = try? await opencv.apply(hKernel, to: image) {
+                    _ = try? await opencv.apply(vKernel, to: mid)
+                }
+            }
+            rows.append(.init(name: "gaussian sep \(side)×\(side)",
+                              metalMs: mMs, improMs: iMs, vimageMs: vMs, opencvMs: cMs))
+        }
+        report4(title: "Separable Gaussian (1×N then N×1) on Image8Bit", rows: rows)
+    }
+
     // MARK: - 4-bit grayvalue: Metal vs ImPro (vImage does not support 4-bit)
 
     @Test("Unit-sum convolution on Image4Bit (Metal, ImPro)")
