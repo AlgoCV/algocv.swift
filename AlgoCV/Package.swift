@@ -11,6 +11,7 @@ let package = Package(
     dependencies: [
         .package(path: "../AlgoCVData"),
         .package(path: "../../impro.swift"),
+        .package(url: "https://github.com/yeatse/opencv-spm.git", from: "4.13.0"),
     ],
     targets: [
         .target(
@@ -18,6 +19,7 @@ let package = Package(
             dependencies: [
                 .product(name: "AlgoCVData", package: "AlgoCVData"),
                 .product(name: "ImPro", package: "impro.swift"),
+                .product(name: "OpenCV", package: "opencv-spm"),
                 "AlgoCVMetal",
             ]
         ),

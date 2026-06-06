@@ -7,12 +7,13 @@ Throughput benchmarks for the Metal, ImPro and vImage backends live in
 they run via `swift test` or Xcode's test runner — they just print timing tables
 to stdout instead of asserting anything.
 
-The three backends are: **Metal** (GPU compute shaders), **ImPro** (single-thread
-SIMD CPU library) and **vImage(1T)** — Apple's vImage pinned to a single thread
-via `kvImageDoNotTile`, used as the deterministic single-core CPU reference that
-Metal itself does not expose. vImage only natively supports 8-bit grayvalue
-linear convolution, so the 4-bit grayvalue and binary morphology tables only
-compare Metal vs ImPro.
+The four backends are: **Metal** (GPU compute shaders), **ImPro** (single-thread
+SIMD CPU library), **vImage(1T)** — Apple's vImage pinned to a single thread via
+`kvImageDoNotTile` — and **OpenCV(1T)** — OpenCV's `Imgproc.filter2D` pinned to
+one thread via `Core.setNumThreads(nthreads: 1)`. vImage and OpenCV are used as
+deterministic single-core CPU references that Metal itself does not expose.
+vImage and OpenCV only cover 8-bit grayvalue linear convolution here, so the
+4-bit grayvalue and binary morphology tables only compare Metal vs ImPro.
 
 From the command line, in the `AlgoCV` package directory:
 
@@ -50,84 +51,84 @@ times are average milliseconds per call. Lower is better.
 ### Unit-sum convolution on `Image8Bit`
 
 ```
-kernel             Metal     ImPro  vImage(1T)   ImPro/Metal   ImPro/vImage
-uniform 3×3        1.612     5.005     1.434          3.11x          3.49x
-gaussian 3×3       0.615     5.070     1.437          8.25x          3.53x
-pyramid 3×3        0.588     4.864     1.092          8.27x          4.45x
-cone 3×3           0.676     4.858     1.130          7.19x          4.30x
-disc 3×3           0.413     5.009     1.421         12.13x          3.53x
-cross 3×3          0.509     4.915     1.370          9.65x          3.59x
-uniform 5×5        0.644     4.096     1.903          6.36x          2.15x
-gaussian 5×5       0.886     4.115     1.899          4.65x          2.17x
-pyramid 5×5        0.694     4.040     1.487          5.82x          2.72x
-cone 5×5           1.267     4.105     1.550          3.24x          2.65x
-disc 5×5           0.592     4.129     1.921          6.97x          2.15x
-cross 5×5          0.591     4.104     1.726          6.95x          2.38x
-uniform 7×7        1.385    14.880     3.334         10.74x          4.46x
-gaussian 7×7       0.700    14.873     3.415         21.25x          4.36x
-pyramid 7×7        0.670    14.740     2.776         22.02x          5.31x
-cone 7×7           1.392    14.918     2.700         10.72x          5.52x
-disc 7×7           1.350    14.917     3.384         11.05x          4.41x
-cross 7×7          1.122    14.895     2.381         13.28x          6.26x
-uniform 9×9        1.447    24.325     4.379         16.81x          5.55x
-gaussian 9×9       1.314    24.217     4.373         18.43x          5.54x
-pyramid 9×9        1.462    24.330     3.608         16.64x          6.74x
-cone 9×9           1.506    24.247     3.519         16.10x          6.89x
-disc 9×9           1.512    24.271     4.172         16.06x          5.82x
-cross 9×9          0.751    24.198     2.907         32.21x          8.33x
-uniform 11×11      1.505    37.479     6.817         24.91x          5.50x
-gaussian 11×11     1.580    37.327     6.775         23.63x          5.51x
-pyramid 11×11      1.313    37.938     5.857         28.88x          6.48x
-cone 11×11         1.430    37.643     5.523         26.33x          6.82x
-disc 11×11         1.492    37.757     6.423         25.30x          5.88x
-cross 11×11        1.599    37.588     3.663         23.51x         10.26x
+kernel             Metal     ImPro  vImage(1T)  OpenCV(1T)  ImPro/vImage   ImPro/OpenCV
+uniform 3×3        1.350     4.998     1.428       2.018         3.50x          2.48x
+gaussian 3×3       1.541     5.032     1.436       1.710         3.50x          2.94x
+pyramid 3×3        0.495     5.031     1.086       1.126         4.63x          4.47x
+cone 3×3           0.551     4.865     1.099       1.127         4.43x          4.32x
+disc 3×3           0.771     4.900     1.365       1.426         3.59x          3.44x
+cross 3×3          0.459     4.889     1.382       1.418         3.54x          3.45x
+uniform 5×5        1.343     4.081     1.949       2.824         2.09x          1.45x
+gaussian 5×5       0.625     4.114     1.941       2.837         2.12x          1.45x
+pyramid 5×5        0.973     4.059     1.532       1.692         2.65x          2.40x
+cone 5×5           0.483     4.111     1.532       1.726         2.68x          2.38x
+disc 5×5           0.495     4.118     1.886       2.538         2.18x          1.62x
+cross 5×5          0.544     4.075     1.775       1.633         2.30x          2.50x
+uniform 7×7        1.381    14.994     3.449       4.547         4.35x          3.30x
+gaussian 7×7       1.521    15.196     3.440       4.583         4.42x          3.32x
+pyramid 7×7        1.525    14.817     2.817       2.846         5.26x          5.21x
+cone 7×7           0.748    14.939     2.750       2.552         5.43x          5.85x
+disc 7×7           1.631    15.025     3.390       3.665         4.43x          4.10x
+cross 7×7          0.511    14.802     2.398       1.980         6.17x          7.47x
+uniform 9×9        1.439    24.505     4.363      12.317         5.62x          1.99x
+gaussian 9×9       1.341    24.836     4.272      12.343         5.81x          2.01x
+pyramid 9×9        1.602    24.724     3.605      12.342         6.86x          2.00x
+cone 9×9           0.869    24.554     3.552      12.253         6.91x          2.00x
+disc 9×9           0.799    24.548     4.237      12.251         5.79x          2.00x
+cross 9×9          1.408    24.613     2.933      12.169         8.39x          2.02x
+uniform 11×11      1.677    38.349     6.904      12.242         5.55x          3.13x
+gaussian 11×11     1.378    38.040     6.889      12.386         5.52x          3.07x
+pyramid 11×11      1.556    37.900     5.972      12.301         6.35x          3.08x
+cone 11×11         1.655    37.952     5.628      12.359         6.74x          3.07x
+disc 11×11         1.560    37.959     6.468      12.343         5.87x          3.08x
+cross 11×11        1.486    37.882     3.727      12.291        10.17x          3.08x
 ```
 
 ### Zero-sum convolution on `Image8Bit`
 
 ```
-kernel             Metal     ImPro  vImage(1T)   ImPro/Metal   ImPro/vImage
-laplacian4 3×3     1.550     3.075     1.376          1.98x          2.23x
-laplacian8 3×3     1.344     3.143     1.513          2.34x          2.08x
-sobelX 3×3         1.280     3.039     1.396          2.37x          2.18x
-sobelY 3×3         0.610     3.050     1.257          5.00x          2.43x
-prewittX 3×3       1.231     3.046     1.414          2.48x          2.15x
-prewittY 3×3       0.544     3.036     1.312          5.58x          2.31x
-laplacian4 5×5     0.602     6.709     1.454         11.15x          4.61x
-laplacian8 5×5     1.216     6.654     1.542          5.47x          4.31x
-sobelX 5×5         1.242     6.637     1.885          5.34x          3.52x
-sobelY 5×5         1.185     6.561     1.743          5.54x          3.76x
-prewittX 5×5       1.325     6.654     1.817          5.02x          3.66x
-prewittY 5×5       1.158     6.685     1.800          5.77x          3.71x
-laplacian4 7×7     1.339    11.842     1.797          8.84x          6.59x
-laplacian8 7×7     0.757    11.840     2.174         15.64x          5.45x
-sobelX 7×7         1.242    11.681     3.395          9.41x          3.44x
-sobelY 7×7         0.725    11.716     3.060         16.15x          3.83x
-prewittX 7×7       0.702    11.945     3.376         17.01x          3.54x
-prewittY 7×7       1.367    11.985     3.097          8.77x          3.87x
-laplacian4 9×9     1.550    18.805     1.997         12.13x          9.41x
-laplacian8 9×9     0.684    18.780     2.261         27.45x          8.31x
-sobelX 9×9         1.391    18.774     4.174         13.50x          4.50x
-sobelY 9×9         0.799    18.695     4.008         23.41x          4.66x
-prewittX 9×9       0.866    18.713     4.165         21.60x          4.49x
-prewittY 9×9       0.734    18.738     4.134         25.52x          4.53x
-laplacian4 11×11   1.490    27.318     2.216         18.34x         12.33x
-laplacian8 11×11   1.601    27.282     2.238         17.04x         12.19x
-sobelX 11×11       1.546    27.298     6.906         17.66x          3.95x
-sobelY 11×11       1.504    27.324     6.452         18.17x          4.24x
-prewittX 11×11     1.163    27.248     6.796         23.42x          4.01x
-prewittY 11×11     1.434    27.237     6.446         19.00x          4.23x
-dogOneStep 5×5     0.662     6.683     1.950         10.10x          3.43x
-dogOneStep 7×7     0.714     0.027*    3.362          0.04x*         0.01x*
-dogOneStep 9×9     0.658     0.029*    4.340          0.04x*         0.01x*
-dogOneStep 11×11   1.176     0.032*    6.873          0.03x*         0.00x*
-dogTwoStep 7×7     1.096     0.027*    3.287          0.02x*         0.01x*
-dogTwoStep 9×9     0.645     0.033*    4.278          0.05x*         0.01x*
-dogTwoStep 11×11   1.494     0.032*    6.688          0.02x*         0.00x*
+kernel             Metal     ImPro  vImage(1T)  OpenCV(1T)  ImPro/vImage   ImPro/OpenCV
+laplacian4 3×3     1.501     3.056     1.380       1.405         2.21x          2.17x
+laplacian8 3×3     1.538     3.118     1.437       1.658         2.17x          1.88x
+sobelX 3×3         0.486     3.069     1.416       1.493         2.17x          2.05x
+sobelY 3×3         0.599     3.040     1.296       1.518         2.35x          2.00x
+prewittX 3×3       1.323     3.060     1.420       1.488         2.15x          2.06x
+prewittY 3×3       1.364     3.069     1.233       1.486         2.49x          2.07x
+laplacian4 5×5     1.462     6.743     1.470       1.430         4.59x          4.71x
+laplacian8 5×5     1.299     6.691     1.528       1.695         4.38x          3.95x
+sobelX 5×5         0.780     6.825     1.850       2.491         3.69x          2.74x
+sobelY 5×5         0.490     6.770     1.790       2.446         3.78x          2.77x
+prewittX 5×5       0.558     6.696     1.865       2.463         3.59x          2.72x
+prewittY 5×5       0.475     6.690     1.795       2.485         3.73x          2.69x
+laplacian4 7×7     0.784    12.068     1.803       1.417         6.69x          8.52x
+laplacian8 7×7     1.069    11.891     2.127       1.698         5.59x          7.00x
+sobelX 7×7         0.890    11.956     3.356       4.012         3.56x          2.98x
+sobelY 7×7         1.226    11.781     3.129       4.074         3.77x          2.89x
+prewittX 7×7       1.223    11.904     3.399       4.040         3.50x          2.95x
+prewittY 7×7       1.380    11.906     3.163       4.027         3.76x          2.96x
+laplacian4 9×9     0.743    18.837     1.983      12.318         9.50x          1.53x
+laplacian8 9×9     0.769    18.884     2.304      12.387         8.20x          1.52x
+sobelX 9×9         1.030    18.892     4.261      12.430         4.43x          1.52x
+sobelY 9×9         1.064    18.911     4.074      12.348         4.64x          1.53x
+prewittX 9×9       1.705    19.065     4.243      12.383         4.49x          1.54x
+prewittY 9×9       1.433    19.012     4.059      12.349         4.68x          1.54x
+laplacian4 11×11   1.794    27.348     2.234      12.312        12.24x          2.22x
+laplacian8 11×11   1.371    27.696     2.270      12.360        12.20x          2.24x
+sobelX 11×11       1.271    27.876     6.938      12.413         4.02x          2.25x
+sobelY 11×11       1.629    27.551     6.413      12.273         4.30x          2.24x
+prewittX 11×11     1.521    27.538     6.878      12.341         4.00x          2.23x
+prewittY 11×11     1.707    27.681     6.426      12.298         4.31x          2.25x
+dogOneStep 5×5     1.430     6.751     1.957       2.823         3.45x          2.39x
+dogOneStep 7×7     0.961     0.027*    3.381       4.234         0.01x*         0.01x*
+dogOneStep 9×9     1.566     0.028*    4.328      12.185         0.01x*         0.00x*
+dogOneStep 11×11   1.073     0.031*    6.912      12.362         0.00x*         0.00x*
+dogTwoStep 7×7     1.422     0.027*    3.450       4.254         0.01x*         0.01x*
+dogTwoStep 9×9     0.684     0.028*    4.255      12.248         0.01x*         0.00x*
+dogTwoStep 11×11   1.550     0.038*    6.927      12.343         0.01x*         0.00x*
 ```
 
 `*` ImPro silently throws on these DoG kernels (`try?` returns `nil`), so the
-0.02–0.03 ms numbers are the cost of the throw, not real convolution time —
+0.02–0.04 ms numbers are the cost of the throw, not real convolution time —
 ImPro's `Kernel` validator rejects the kernels because the Int8 rounding leaves
 the signed sum just shy of zero. Tracked as an upstream ImPro C-library bug.
 
@@ -239,10 +240,15 @@ implementations; omitted here for brevity. See the live console output of the
 
 ### Headline observations
 
-- **8-bit grayvalue convolution.** Metal wins everywhere by 2×–32×. Among the
-  two CPU backends, hand-tuned vImage on one thread is 2–12× faster than the
-  AI-written ImPro on one thread — i.e. **ImPro has roughly an order of
-  magnitude of single-core CPU performance to recover**.
+- **8-bit grayvalue convolution, GPU vs CPU.** Metal wins everywhere by 2×–28×.
+- **8-bit grayvalue convolution, CPU race.** Among the three single-thread CPU
+  backends, the order is consistently **vImage ≤ OpenCV < ImPro**. vImage and
+  OpenCV are roughly tied on small kernels (3×3–7×7); on 9×9 and 11×11 OpenCV
+  jumps to a flat ~12 ms because OpenCV's `filter2D` switches to a DFT-based
+  implementation past a kernel-size heuristic, and that path is slower in
+  single-thread mode than vImage's direct convolution. The AI-written ImPro is
+  2–12× slower than both, so it has roughly an order of magnitude of CPU
+  performance to recover against the hand-tuned Apple/OpenCV implementations.
 - **4-bit grayvalue convolution.** Metal loses catastrophically (250–360 ms vs
   1–16 ms for ImPro). The Metal 4-bit path expands 4→8 bit, convolves, then
   quantises 8→4 bit on every call, and the conversion overhead dominates. A
@@ -252,5 +258,5 @@ implementations; omitted here for brevity. See the live console output of the
   Metal is slightly faster. Metal's morphology shader appears to carry a fixed
   per-launch overhead that small kernels can't amortise.
 - **DoG kernels (≥ 7×7).** ImPro currently rejects them because the rounded Int8
-  weights don't sum to exactly zero — visible as the 0.02–0.03 ms throw
+  weights don't sum to exactly zero — visible as the 0.02–0.04 ms throw
   shortcut in the zero-sum tables. Tracked as an upstream ImPro C-library bug.

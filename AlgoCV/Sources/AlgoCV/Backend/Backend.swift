@@ -48,6 +48,12 @@ public enum AlgoCV {
     /// `AlgoCVError.unsupportedByBackend`.
     public static let vImageBackend: AlgoCVBackend = VImageBackend()
 
+    /// Single-thread CPU reference backend using OpenCV's `Imgproc.filter2D`,
+    /// pinned to one thread via `cv::setNumThreads(1)`. Only implements
+    /// linear convolution on `Image8Bit`; the other backend methods throw
+    /// `AlgoCVError.unsupportedByBackend`.
+    public static let openCVBackend: AlgoCVBackend = OpenCVBackend()
+
     private static let _resolved: AlgoCVBackend = {
         if let metal = metalBackend { return metal }
         return improBackend
