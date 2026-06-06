@@ -323,7 +323,7 @@ private enum KernelSamples {
     }
 }
 
-private enum SampleMath {
+enum SampleMath {
     enum Axis { case horizontal, vertical }
 
     static func uniform(_ side: Int) -> [[UInt8]] {
