@@ -35,8 +35,15 @@ public enum AlgoCV {
     /// Resolved once at first access: Metal if a device is available, else ImPro.
     public static var defaultBackend: AlgoCVBackend { _resolved }
 
+    /// CPU backend using the SIMD-optimized ImPro library. Always available.
+    public static let improBackend: AlgoCVBackend = ImProBackend()
+
+    /// GPU backend using Metal compute shaders. `nil` on hosts without a
+    /// usable Metal device (e.g. older Macs or Linux).
+    public static let metalBackend: AlgoCVBackend? = MetalBackend()
+
     private static let _resolved: AlgoCVBackend = {
-        if let metal = MetalBackend() { return metal }
-        return ImProBackend()
+        if let metal = metalBackend { return metal }
+        return improBackend
     }()
 }
