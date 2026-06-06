@@ -1,4 +1,5 @@
 import Foundation
+import AlgoCVData
 
 /// Color-space formulas applied on top of the per-channel R/G/B planes produced
 /// by `ImPro.ImgRgb.split()`. The formulas mirror those in

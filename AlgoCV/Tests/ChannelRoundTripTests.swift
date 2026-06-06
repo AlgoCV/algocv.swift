@@ -1,4 +1,5 @@
 import Testing
+import AlgoCVData
 @testable import AlgoCV
 
 @Suite struct ChannelRoundTripTests {

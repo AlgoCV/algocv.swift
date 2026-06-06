@@ -1,3 +1,5 @@
+import AlgoCVData
+
 public extension ImageRGB {
     /// Splits this image into per-channel `Image8Bit`s under `space`.
     /// Returns `space.channelCount` images (3 for everything except `.cmyk`).

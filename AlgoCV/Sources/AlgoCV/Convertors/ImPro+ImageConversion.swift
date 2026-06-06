@@ -1,4 +1,5 @@
 import ImPro
+import AlgoCVData
 
 extension Image8Bit {
     func toImPro() throws -> ImPro.GrayImage {

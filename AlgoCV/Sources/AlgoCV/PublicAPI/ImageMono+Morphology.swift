@@ -1,3 +1,5 @@
+import AlgoCVData
+
 public extension ImageMono {
     /// Erodes the foreground by the structuring element `shape`. `passes` ≥ 1
     /// repeats the structuring-element pass.

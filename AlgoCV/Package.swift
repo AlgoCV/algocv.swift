@@ -10,14 +10,14 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../AlgoCVData"),
-        .package(path: "../../impro/swift"),
+        .package(path: "../../impro.swift"),
     ],
     targets: [
         .target(
             name: "AlgoCV",
             dependencies: [
                 .product(name: "AlgoCVData", package: "AlgoCVData"),
-                .product(name: "ImPro", package: "swift"),
+                .product(name: "ImPro", package: "impro.swift"),
                 "AlgoCVMetal",
             ]
         ),

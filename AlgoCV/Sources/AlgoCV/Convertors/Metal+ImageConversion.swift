@@ -1,4 +1,5 @@
 import Metal
+import AlgoCVData
 
 extension Image8Bit {
     func toMetalBuffer(device: MTLDevice) throws -> MTLBuffer {
