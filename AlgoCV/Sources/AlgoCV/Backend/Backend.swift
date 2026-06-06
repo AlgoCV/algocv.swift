@@ -42,6 +42,12 @@ public enum AlgoCV {
     /// usable Metal device (e.g. older Macs or Linux).
     public static let metalBackend: AlgoCVBackend? = MetalBackend()
 
+    /// Single-thread CPU reference backend using Apple's vImage, pinned to
+    /// one thread via `kvImageDoNotTile`. Only implements linear convolution
+    /// on `Image8Bit`; the other backend methods throw
+    /// `AlgoCVError.unsupportedByBackend`.
+    public static let vImageBackend: AlgoCVBackend = VImageBackend()
+
     private static let _resolved: AlgoCVBackend = {
         if let metal = metalBackend { return metal }
         return improBackend

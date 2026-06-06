@@ -277,7 +277,7 @@ private enum PreviewImageBuilder {
 // Kept here verbatim so the parity tests stay self-contained and survive
 // changes to the GUI's preset list.
 
-private enum KernelSamples {
+enum KernelSamples {
     static let kernelSides: [Int] = [3, 5, 7, 9, 11]
 
     static var unitSum: [UnitSumKernelCase] {
