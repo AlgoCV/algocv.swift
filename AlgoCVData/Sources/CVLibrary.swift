@@ -2,56 +2,48 @@ import Foundation
 
 public enum CVLibraryError: Error, Equatable, LocalizedError, Sendable {
     case duplicateKernel(id: UInt64)
+    case duplicateOperator(signature: UInt64)
 
     public var errorDescription: String? {
         switch self {
         case .duplicateKernel(let id):
             "CVLibrary contains duplicate kernel with id 0x\(String(id, radix: 16, uppercase: true))."
+        case .duplicateOperator(let signature):
+            "CVLibrary contains duplicate operator with signature 0x\(String(signature, radix: 16, uppercase: true))."
         }
     }
 }
 
-/// Curated collection of convolution and morphology kernels.
+/// Curated collection of convolution / morphology kernels and operators.
 ///
 /// All kernels stored in a `CVLibrary` are guaranteed to have distinct `id`s
 /// across kinds, so it is safe to use the library as a content-addressable
-/// catalogue.
+/// catalogue. The same applies to operator signatures, in a separate
+/// namespace (kernel ids and operator signatures share the `FNV1a` output
+/// space but are domain-separated, so cross-set equality has no semantic
+/// meaning and is not enforced).
 public struct CVLibrary: Codable, Equatable, Sendable {
     public let unitSumKernels: [KernelUnitSum]
     public let zeroSumKernels: [KernelZeroSum]
     public let nonlinearKernels: [KernelNonlinear]
+    public let operators: [Operator]
 
     public init(
         unitSumKernels: [KernelUnitSum] = [],
         zeroSumKernels: [KernelZeroSum] = [],
-        nonlinearKernels: [KernelNonlinear] = []
+        nonlinearKernels: [KernelNonlinear] = [],
+        operators: [Operator] = []
     ) throws {
         try Self.requireDistinct(
             unitSumKernels: unitSumKernels,
             zeroSumKernels: zeroSumKernels,
             nonlinearKernels: nonlinearKernels
         )
+        try Self.requireDistinctOperators(operators)
         self.unitSumKernels = unitSumKernels
         self.zeroSumKernels = zeroSumKernels
         self.nonlinearKernels = nonlinearKernels
-    }
-
-    private enum CodingKeys: String, CodingKey {
-        case unitSumKernels
-        case zeroSumKernels
-        case nonlinearKernels
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let unitSum = try container.decodeIfPresent([KernelUnitSum].self, forKey: .unitSumKernels) ?? []
-        let zeroSum = try container.decodeIfPresent([KernelZeroSum].self, forKey: .zeroSumKernels) ?? []
-        let nonlinear = try container.decodeIfPresent([KernelNonlinear].self, forKey: .nonlinearKernels) ?? []
-        try self.init(
-            unitSumKernels: unitSum,
-            zeroSumKernels: zeroSum,
-            nonlinearKernels: nonlinear
-        )
+        self.operators = operators
     }
 
     private static func requireDistinct(
@@ -77,17 +69,28 @@ public struct CVLibrary: Codable, Equatable, Sendable {
             }
         }
     }
+
+    private static func requireDistinctOperators(_ operators: [Operator]) throws {
+        var seen: Set<UInt64> = []
+        seen.reserveCapacity(operators.count)
+        for signature in operators.lazy.map(\.signature) {
+            guard seen.insert(signature).inserted else {
+                throw CVLibraryError.duplicateOperator(signature: signature)
+            }
+        }
+    }
 }
 
 public extension CVLibrary {
-    /// Classical computer-vision kernels: smoothing low-pass filters,
-    /// edge / Laplacian high-pass filters, and morphology structuring elements.
+    /// Classical computer-vision kernels and the standard operator catalogue
+    /// built on top of them.
     static let standard: CVLibrary = {
         do {
             return try CVLibrary(
                 unitSumKernels: standardUnitSumKernels,
                 zeroSumKernels: standardZeroSumKernels,
-                nonlinearKernels: standardNonlinearKernels
+                nonlinearKernels: standardNonlinearKernels,
+                operators: standardOperators
             )
         } catch {
             preconditionFailure("CVLibrary.standard violated distinctness invariant: \(error.localizedDescription)")

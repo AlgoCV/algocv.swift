@@ -9,7 +9,7 @@ public typealias NonlinearTransformation = KernelNonlinear.Transformation
 /// The mask is independent from the reduction operation — for grayvalue filters
 /// the transformation is passed separately; for morphology there is no
 /// transformation.
-public struct Shape: Sendable, Equatable {
+public struct Shape: Sendable, Equatable, Codable {
     public let cols: UInt8
     public let rows: UInt8
     public let mask: [[Bool]]
@@ -43,5 +43,20 @@ public struct Shape: Sendable, Equatable {
 
     public var activeCount: Int {
         mask.reduce(0) { $0 + $1.lazy.filter { $0 }.count }
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case mask
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let mask = try container.decode([[Bool]].self, forKey: .mask)
+        try self.init(mask)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(mask, forKey: .mask)
     }
 }

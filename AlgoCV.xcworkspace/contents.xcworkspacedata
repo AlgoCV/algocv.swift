@@ -10,6 +10,13 @@
    <FileRef
       location = "group:README.md">
    </FileRef>
+   <Group
+      location = "group:Docs"
+      name = "Docs">
+      <FileRef
+         location = "group:Operators.md">
+      </FileRef>
+   </Group>
    <FileRef
       location = "group:CLAUDE.md">
    </FileRef>
