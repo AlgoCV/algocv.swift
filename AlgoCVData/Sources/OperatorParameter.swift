@@ -4,12 +4,12 @@ import Foundation
 /// (§6 of `Docs/Operators.md`). Mirrors the case set of `OperatorParameter`
 /// without the payload.
 public enum ParameterKind: String, Codable, Sendable, Equatable, CaseIterable {
-    case kernelUnitSum
-    case kernelZeroSum
+    case kernelDC1
+    case kernelDC0
     case kernelNonlinear
     case shape
-    case colorSpace
-    case nonlinearTransformation
+    case color
+    case nonlinear
     case gray
     case count
     case size
@@ -34,12 +34,12 @@ public enum OperatorParameter: Equatable, Sendable {
 
     public var kind: ParameterKind {
         switch self {
-        case .kernelUnitSum:            .kernelUnitSum
-        case .kernelZeroSum:            .kernelZeroSum
+        case .kernelUnitSum:            .kernelDC1
+        case .kernelZeroSum:            .kernelDC0
         case .kernelNonlinear:          .kernelNonlinear
         case .shape:                    .shape
-        case .colorSpace:               .colorSpace
-        case .nonlinearTransformation:  .nonlinearTransformation
+        case .colorSpace:               .color
+        case .nonlinearTransformation:  .nonlinear
         case .gray:                     .gray
         case .count:                    .count
         case .size:                     .size
@@ -64,17 +64,17 @@ extension OperatorParameter: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let kind = try container.decode(ParameterKind.self, forKey: .type)
         switch kind {
-        case .kernelUnitSum:
+        case .kernelDC1:
             self = .kernelUnitSum(try container.decode(KernelUnitSum.self, forKey: .value))
-        case .kernelZeroSum:
+        case .kernelDC0:
             self = .kernelZeroSum(try container.decode(KernelZeroSum.self, forKey: .value))
         case .kernelNonlinear:
             self = .kernelNonlinear(try container.decode(KernelNonlinear.self, forKey: .value))
         case .shape:
             self = .shape(try container.decode(Shape.self, forKey: .value))
-        case .colorSpace:
+        case .color:
             self = .colorSpace(try container.decode(ColorSpace.self, forKey: .value))
-        case .nonlinearTransformation:
+        case .nonlinear:
             self = .nonlinearTransformation(try container.decode(NonlinearTransformation.self, forKey: .value))
         case .gray:
             self = .gray(try container.decode(UInt8.self, forKey: .value))

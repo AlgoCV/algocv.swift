@@ -12,6 +12,15 @@
 /// bindings and the same typed slot lists, regardless of how they are
 /// catalogued or labelled.
 public struct Operator: Codable, Equatable, Sendable, Identifiable {
+    public var id: UInt64 {
+        Self.computeSignature(
+            call: call,
+            parameters: parameters,
+            inputs: inputs,
+            outputs: outputs
+        )
+    }
+
     public let name: String
     public let details: String?
     public let kind: OperatorKind
@@ -20,10 +29,18 @@ public struct Operator: Codable, Equatable, Sendable, Identifiable {
     public let parameters: [NamedParameter]
     public let inputs: [OperatorSlot]
     public let outputs: [OperatorSlot]
-    public let signature: UInt64
 
-    public var id: UInt64 { signature }
-
+    private enum CodingKeys: String, CodingKey {
+        case name
+        case details
+        case kind
+        case subKind
+        case call
+        case parameters
+        case inputs
+        case outputs
+    }
+    
     public init(
         name: String,
         details: String? = nil,
@@ -44,51 +61,8 @@ public struct Operator: Codable, Equatable, Sendable, Identifiable {
         self.parameters = parameters
         self.inputs = inputs
         self.outputs = outputs
-        self.signature = Self.computeSignature(
-            call: call,
-            parameters: parameters,
-            inputs: inputs,
-            outputs: outputs
-        )
     }
-
-    private enum CodingKeys: String, CodingKey {
-        case name
-        case details
-        case kind
-        case subKind
-        case call
-        case parameters
-        case inputs
-        case outputs
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        try self.init(
-            name: try container.decode(String.self, forKey: .name),
-            details: try container.decodeIfPresent(String.self, forKey: .details),
-            kind: try container.decode(OperatorKind.self, forKey: .kind),
-            subKind: try container.decodeIfPresent(OperatorSubKind.self, forKey: .subKind),
-            call: try container.decode(OperatorCall.self, forKey: .call),
-            parameters: try container.decode([NamedParameter].self, forKey: .parameters),
-            inputs: try container.decode([OperatorSlot].self, forKey: .inputs),
-            outputs: try container.decode([OperatorSlot].self, forKey: .outputs)
-        )
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(name, forKey: .name)
-        try container.encodeIfPresent(details, forKey: .details)
-        try container.encode(kind, forKey: .kind)
-        try container.encodeIfPresent(subKind, forKey: .subKind)
-        try container.encode(call, forKey: .call)
-        try container.encode(parameters, forKey: .parameters)
-        try container.encode(inputs, forKey: .inputs)
-        try container.encode(outputs, forKey: .outputs)
-    }
-
+    
     private static func validateKind(_ kind: OperatorKind, subKind: OperatorSubKind?) throws {
         let allowed = kind.allowedSubKinds
         if allowed.isEmpty {

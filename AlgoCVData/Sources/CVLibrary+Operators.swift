@@ -3,17 +3,17 @@ public extension CVLibrary {
     /// One operator per `(call, fixed binding)` pair the runtime currently
     /// supports. Distinctness is exercised by `OperatorIDCollisionTests`.
     static var standardOperators: [Operator] {
-        unitSumConvolutionOperators(on: .image8Bit) +
-        unitSumConvolutionOperators(on: .image4Bit) +
-        zeroSumConvolutionOperators(on: .image8Bit) +
-        zeroSumConvolutionOperators(on: .image4Bit) +
-        nonlinearFilterOperators(on: .image8Bit) +
-        nonlinearFilterOperators(on: .image4Bit) +
-        morphologyOperators() +
-        colorSpaceOperators()
+        kernelsDC1(on: .image8Bit) +
+        kernelsDC1(on: .image4Bit) +
+        kernelsDC0(on: .image8Bit) +
+        kernelsDC0(on: .image4Bit) +
+        kernelsNonlinear(on: .image8Bit) +
+        kernelsNonlinear(on: .image4Bit) +
+        morphology() +
+        colorSpace()
     }
 
-    private static func unitSumConvolutionOperators(on imageKind: DataKind) -> [Operator] {
+    private static func kernelsDC1(on imageKind: DataKind) -> [Operator] {
         let call: OperatorCall = imageKind == .image8Bit
             ? .applyKernelUnitSumImage8Bit
             : .applyKernelUnitSumImage4Bit
@@ -30,7 +30,7 @@ public extension CVLibrary {
         }
     }
 
-    private static func zeroSumConvolutionOperators(on imageKind: DataKind) -> [Operator] {
+    private static func kernelsDC0(on imageKind: DataKind) -> [Operator] {
         let call: OperatorCall = imageKind == .image8Bit
             ? .applyKernelZeroSumImage8Bit
             : .applyKernelZeroSumImage4Bit
@@ -47,7 +47,7 @@ public extension CVLibrary {
         }
     }
 
-    private static func nonlinearFilterOperators(on imageKind: DataKind) -> [Operator] {
+    private static func kernelsNonlinear(on imageKind: DataKind) -> [Operator] {
         let call: OperatorCall = imageKind == .image8Bit
             ? .filterImage8BitNonlinear
             : .filterImage4BitNonlinear
@@ -67,7 +67,7 @@ public extension CVLibrary {
         }
     }
 
-    private static func morphologyOperators() -> [Operator] {
+    private static func morphology() -> [Operator] {
         let shapes: [(name: String, shape: Shape)] = [
             ("box 3×3", try! Shape(Array(
                 repeating: Array(repeating: true, count: 3),
@@ -102,7 +102,7 @@ public extension CVLibrary {
         }
     }
 
-    private static func colorSpaceOperators() -> [Operator] {
+    private static func colorSpace() -> [Operator] {
         ColorSpace.allCases.flatMap { space -> [Operator] in
             let channelSlots = (0..<space.channelCount).map { index in
                 OperatorSlot(name: "channel \(index)", kind: .image8Bit)

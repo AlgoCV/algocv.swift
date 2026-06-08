@@ -55,28 +55,28 @@ extension OperatorCall {
     ) throws {
         switch self {
         case .applyKernelUnitSumImage8Bit:
-            try requireParameters(parameters, [.kernelUnitSum])
+            try requireParameters(parameters, [.kernelDC1])
             try requireInputs(inputs, [.image8Bit])
             try requireOutputs(outputs, [.image8Bit])
         case .applyKernelZeroSumImage8Bit:
-            try requireParameters(parameters, [.kernelZeroSum])
+            try requireParameters(parameters, [.kernelDC0])
             try requireInputs(inputs, [.image8Bit])
             try requireOutputs(outputs, [.image8Bit])
         case .applyKernelUnitSumImage4Bit:
-            try requireParameters(parameters, [.kernelUnitSum])
+            try requireParameters(parameters, [.kernelDC1])
             try requireInputs(inputs, [.image4Bit])
             try requireOutputs(outputs, [.image4Bit])
         case .applyKernelZeroSumImage4Bit:
-            try requireParameters(parameters, [.kernelZeroSum])
+            try requireParameters(parameters, [.kernelDC0])
             try requireInputs(inputs, [.image4Bit])
             try requireOutputs(outputs, [.image4Bit])
 
         case .filterImage8BitNonlinear:
-            try requireParameters(parameters, [.shape, .nonlinearTransformation])
+            try requireParameters(parameters, [.shape, .nonlinear])
             try requireInputs(inputs, [.image8Bit])
             try requireOutputs(outputs, [.image8Bit])
         case .filterImage4BitNonlinear:
-            try requireParameters(parameters, [.shape, .nonlinearTransformation])
+            try requireParameters(parameters, [.shape, .nonlinear])
             try requireInputs(inputs, [.image4Bit])
             try requireOutputs(outputs, [.image4Bit])
 
@@ -188,7 +188,7 @@ extension OperatorCall {
         guard case .colorSpace(let space) = parameters[0].value else {
             throw OperatorValidationError.mismatchedCallSchema(
                 call: self,
-                reason: "parameter 0 expected \(ParameterKind.colorSpace.rawValue), got \(parameters[0].value.kind.rawValue)"
+                reason: "parameter 0 expected \(ParameterKind.color.rawValue), got \(parameters[0].value.kind.rawValue)"
             )
         }
         return space

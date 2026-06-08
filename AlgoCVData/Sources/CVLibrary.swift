@@ -73,7 +73,7 @@ public struct CVLibrary: Codable, Equatable, Sendable {
     private static func requireDistinctOperators(_ operators: [Operator]) throws {
         var seen: Set<UInt64> = []
         seen.reserveCapacity(operators.count)
-        for signature in operators.lazy.map(\.signature) {
+        for signature in operators.lazy.map(\.id) {
             guard seen.insert(signature).inserted else {
                 throw CVLibraryError.duplicateOperator(signature: signature)
             }
