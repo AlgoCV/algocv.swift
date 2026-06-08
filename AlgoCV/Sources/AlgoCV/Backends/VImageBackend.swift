@@ -131,4 +131,20 @@ struct VImageBackend: AlgoCVBackend {
     func histogram(of image: Image8Bit) async throws -> Histogram {
         throw AlgoCVError.unsupportedByBackend("vImage backend does not implement histogram.")
     }
+
+    func fourier(of image: Image8Bit) async throws -> Spectrum8Bit {
+        throw AlgoCVError.unsupportedByBackend("vImage backend does not implement Fourier transform.")
+    }
+
+    func inverseFourier(of spectrum: Spectrum8Bit) async throws -> Image8Bit {
+        throw AlgoCVError.unsupportedByBackend("vImage backend does not implement inverse Fourier transform.")
+    }
+
+    func fourier(of image: Image4Bit) async throws -> Spectrum4Bit {
+        throw AlgoCVError.unsupportedByBackend("vImage backend does not implement Fourier transform.")
+    }
+
+    func inverseFourier(of spectrum: Spectrum4Bit) async throws -> Image4Bit {
+        throw AlgoCVError.unsupportedByBackend("vImage backend does not implement inverse Fourier transform.")
+    }
 }

@@ -33,6 +33,12 @@ public protocol AlgoCVBackend: Sendable {
     // 256-bin histogram from an 8-bit grayvalue image. Bin-wise operations
     // between histograms live on `Histogram` itself.
     func histogram(of image: Image8Bit) async throws -> Histogram
+
+    // Forward / inverse 2D FFT on grayvalue images.
+    func fourier       (of image:    Image8Bit)    async throws -> Spectrum8Bit
+    func inverseFourier(of spectrum: Spectrum8Bit) async throws -> Image8Bit
+    func fourier       (of image:    Image4Bit)    async throws -> Spectrum4Bit
+    func inverseFourier(of spectrum: Spectrum4Bit) async throws -> Image4Bit
 }
 
 public enum AlgoCV {

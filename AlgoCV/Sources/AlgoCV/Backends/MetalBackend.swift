@@ -279,6 +279,24 @@ struct MetalBackend: AlgoCVBackend {
         throw AlgoCVError.unsupportedByBackend("Metal backend does not implement histogram.")
     }
 
+    // MARK: - Fourier
+
+    func fourier(of image: Image8Bit) async throws -> Spectrum8Bit {
+        throw AlgoCVError.unsupportedByBackend("Metal backend does not implement Fourier transform.")
+    }
+
+    func inverseFourier(of spectrum: Spectrum8Bit) async throws -> Image8Bit {
+        throw AlgoCVError.unsupportedByBackend("Metal backend does not implement inverse Fourier transform.")
+    }
+
+    func fourier(of image: Image4Bit) async throws -> Spectrum4Bit {
+        throw AlgoCVError.unsupportedByBackend("Metal backend does not implement Fourier transform.")
+    }
+
+    func inverseFourier(of spectrum: Spectrum4Bit) async throws -> Image4Bit {
+        throw AlgoCVError.unsupportedByBackend("Metal backend does not implement inverse Fourier transform.")
+    }
+
     func compose(_ channels: [Image8Bit], from space: ColorSpace) async throws -> ImageRGB {
         guard channels.count == space.channelCount else {
             throw AlgoCVError.invalidChannelCount(expected: space.channelCount, actual: channels.count)

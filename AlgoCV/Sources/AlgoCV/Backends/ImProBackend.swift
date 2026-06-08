@@ -87,6 +87,32 @@ struct ImProBackend: AlgoCVBackend {
         return try Histogram(try gray.histogram())
     }
 
+    // MARK: - Fourier
+
+    func fourier(of image: Image8Bit) async throws -> Spectrum8Bit {
+        let gray = try image.toImPro()
+        return try Spectrum8Bit(try ImPro.GraySpectrum(fourierOf: gray))
+    }
+
+    func inverseFourier(of spectrum: Spectrum8Bit) async throws -> Image8Bit {
+        let freq = try spectrum.toImPro()
+        return try Image8Bit(try ImPro.GrayImage(inverseFourierOf: freq))
+    }
+
+    func fourier(of image: Image4Bit) async throws -> Spectrum4Bit {
+        let pal = try image.toImPro()
+        return try Spectrum4Bit(try ImPro.PaletteSpectrum(fourierOf: pal))
+    }
+
+    func inverseFourier(of spectrum: Spectrum4Bit) async throws -> Image4Bit {
+        // ImPro's PaletteSpectrum does not expose write access, so a
+        // Spectrum4Bit value cannot be lifted back into Freq16 storage for
+        // `impro_img16_inverse_fft`. Forward FFT works; inverse does not.
+        throw AlgoCVError.unsupportedByBackend(
+            "ImPro backend cannot reconstruct an Image4Bit from a Spectrum4Bit (PaletteSpectrum is read-only)."
+        )
+    }
+
     func compose(_ channels: [Image8Bit], from space: ColorSpace) async throws -> ImageRGB {
         guard channels.count == space.channelCount else {
             throw AlgoCVError.invalidChannelCount(expected: space.channelCount, actual: channels.count)
