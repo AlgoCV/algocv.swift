@@ -273,6 +273,12 @@ struct MetalBackend: AlgoCVBackend {
         return planes
     }
 
+    // MARK: - Histogram
+
+    func histogram(of image: Image8Bit) async throws -> Histogram {
+        throw AlgoCVError.unsupportedByBackend("Metal backend does not implement histogram.")
+    }
+
     func compose(_ channels: [Image8Bit], from space: ColorSpace) async throws -> ImageRGB {
         guard channels.count == space.channelCount else {
             throw AlgoCVError.invalidChannelCount(expected: space.channelCount, actual: channels.count)

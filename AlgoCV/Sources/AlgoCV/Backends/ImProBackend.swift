@@ -80,6 +80,13 @@ struct ImProBackend: AlgoCVBackend {
         return try planes.map { try Image8Bit(cols: image.cols, rows: image.rows, pixels: $0) }
     }
 
+    // MARK: - Histogram
+
+    func histogram(of image: Image8Bit) async throws -> Histogram {
+        let gray = try image.toImPro()
+        return try Histogram(try gray.histogram())
+    }
+
     func compose(_ channels: [Image8Bit], from space: ColorSpace) async throws -> ImageRGB {
         guard channels.count == space.channelCount else {
             throw AlgoCVError.invalidChannelCount(expected: space.channelCount, actual: channels.count)

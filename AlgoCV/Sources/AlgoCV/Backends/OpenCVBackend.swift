@@ -100,4 +100,8 @@ struct OpenCVBackend: AlgoCVBackend {
     func compose(_ channels: [Image8Bit], from space: ColorSpace) async throws -> ImageRGB {
         throw AlgoCVError.unsupportedByBackend("OpenCV backend does not implement channel compose.")
     }
+
+    func histogram(of image: Image8Bit) async throws -> Histogram {
+        throw AlgoCVError.unsupportedByBackend("OpenCV backend does not implement histogram.")
+    }
 }

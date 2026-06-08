@@ -29,6 +29,10 @@ public protocol AlgoCVBackend: Sendable {
     // other spaces apply a color-space formula on top of the R/G/B planes.
     func split  (_ image: ImageRGB, into space: ColorSpace) async throws -> [Image8Bit]
     func compose(_ channels: [Image8Bit], from space: ColorSpace) async throws -> ImageRGB
+
+    // 256-bin histogram from an 8-bit grayvalue image. Bin-wise operations
+    // between histograms live on `Histogram` itself.
+    func histogram(of image: Image8Bit) async throws -> Histogram
 }
 
 public enum AlgoCV {

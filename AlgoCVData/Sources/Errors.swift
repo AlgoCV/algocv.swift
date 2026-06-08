@@ -5,6 +5,7 @@ public enum AlgoCVError: Error, Equatable, Sendable, LocalizedError {
     case invalidPixelCount(expected: Int, actual: Int)
     case invalidWordCount(expected: Int, actual: Int)
     case invalidChannelCount(expected: Int, actual: Int)
+    case invalidBinCount(expected: Int, actual: Int)
     case mismatchedChannelDimensions
     case emptyShape
     case unsupportedByBackend(String)
@@ -21,6 +22,8 @@ public enum AlgoCVError: Error, Equatable, Sendable, LocalizedError {
             return "Packed-word buffer length \(actual) does not match expected \(expected)."
         case .invalidChannelCount(let expected, let actual):
             return "Expected \(expected) channel(s); received \(actual)."
+        case .invalidBinCount(let expected, let actual):
+            return "Histogram bin buffer length \(actual) does not match expected \(expected)."
         case .mismatchedChannelDimensions:
             return "Channel planes must share a common (cols, rows)."
         case .emptyShape:
